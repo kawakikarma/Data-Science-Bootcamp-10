@@ -1,0 +1,86 @@
+---
+title: "logistic regression homework"
+author: "Teerapat H."
+date: "2024-08-08"
+output: html_document
+---
+
+# Build model to survive prediction.
+
+Using data from "Titanic" library.
+
+### Start from install by using install.package() function, and import library.
+
+```{r}
+install.packages("titanic")
+library(titanic)
+```
+
+### And then cleansing data using na.omit() function.
+
+```{r}
+titanic_train = na.omit(titanic_train)
+```
+
+Then, time to following by building model golden rules.
+
+### Split.
+
+```{r}
+n = nrow(titanic_train)
+set.seed(42)
+id = sample(1:n, n*0.75)
+train_data = titanic_train[id, ]
+test_data = titanic_train[-id, ]
+```
+
+I will split 75% of data from "titanic_train" to train model, and use another 25% left to test model.
+
+### Train
+
+```{r}
+model = glm(Survived ~ Pclass + Sex + Age, 
+            data = train_data, family = "binomial")
+```
+
+### Test
+
+```{r}
+df = data.frame(test_data$Pclass,
+                test_data$Sex,
+                test_data$Age,
+                test_data$Survived)
+
+df$prob_surv = predict(model, newdata = test_data, type = "response")
+df$pred_surv = ifelse(df$prob_surv >= 0.5, 1, 0)
+```
+
+### Model evaluation.
+
+Now, time to evaluate model.
+
+Start from create confusion matrix using table() function, and stored in "confusion_matrix" variable for reusable.
+
+```{r}
+confusion_matrix = table(df$pred_surv, 
+               df$test_data.Survived, 
+               dnn = c("predicted", "Actual"))
+```
+
+Then calculate another value accuracy, precision, recall and F1 score included.
+
+```{r}
+acc = (confusion_matrix[1,1] + confusion_matrix[2,2]) / sum(confusion_matrix)
+cat("Accuracy:", acc)
+
+prec = confusion_matrix[2,2] / (confusion_matrix[2,1] + confusion_matrix[2,2])
+cat("Precision:", prec)
+
+rec = confusion_matrix[2,2] / (confusion_matrix[1,2] + confusion_matrix[2,2])
+cat("Recall:", rec)
+
+f1 = 2 * (prec * rec) / (prec + rec)
+cat("F1 score:", f1)
+```
+
+Calculated by using normal operation. access value by subset method.
